@@ -1,7 +1,10 @@
+const CACHE_STATIC_NAME = 'statoc-v3';
+const CACHE_DYNAMIC_NAME = 'dynamic-v2';
+
 self.addEventListener('install', (event) => {
   console.log('[SW] installed.....................', event);
   event.waitUntil(
-    caches.open('static')
+    caches.open(CACHE_STATIC_NAME)
       .then((cache) => {
         console.log('[SW] precaching app shell');
         cache.addAll([
@@ -24,8 +27,17 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-	console.log('[SW] activated', event);
-	return self.clients.claim();
+  console.log('[SW] activated', event);
+  event.waitUntil(
+    caches.keys().then(keys => {
+      Promise.all(keys.map(key => {
+        if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {
+          console.log('[SW] removing old cached', key);
+          return caches.delete(key);
+        }
+      }));
+  }));
+  return self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -36,7 +48,11 @@ self.addEventListener('fetch', (event) => {
         if (response) {
           return response;
         }
-        return fetch(event.request);
+        return fetch(event.request)
+          .then((res) => {
+            caches.open(CACHE_DYNAMIC_NAME).then(cache => cache.put(event.request.url, res));
+            return res.clone();
+          });
       })
   );
 });
