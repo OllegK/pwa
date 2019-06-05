@@ -1,4 +1,4 @@
-const CACHE_STATIC_NAME = 'static-v13';
+const CACHE_STATIC_NAME = 'static-v14';
 const CACHE_DYNAMIC_NAME = 'dynamic-v8';
 const STATIC_FILES = [
   '/',
@@ -17,17 +17,17 @@ const STATIC_FILES = [
   'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
 ];
 
-const trimCache = (cacheName, maxItems) => {
-  caches.open(cacheName).then(cache => {
-    cache.keys().then(keys => {
-      console.log(keys, keys.length);
-      if (keys.length > maxItems) {
-        console.log('deleted');
-        cache.delete(keys[0]).then(trimCache(cacheName, maxItems))
-      }
-    })
-  })
-}
+// const trimCache = (cacheName, maxItems) => {
+//   caches.open(cacheName).then(cache => {
+//     cache.keys().then(keys => {
+//       console.log(keys, keys.length);
+//       if (keys.length > maxItems) {
+//         console.log('deleted');
+//         cache.delete(keys[0]).then(trimCache(cacheName, maxItems))
+//       }
+//     })
+//   })
+// }
 
 self.addEventListener('install', (event) => {
   console.log('[SW] installed.....................', event);
@@ -71,7 +71,7 @@ const isInArray = (string, array) => {
 self.addEventListener('fetch', (event) => {
 
   // console.log('[SW] fetching...', event);
-  const url = 'https://httpbin.org/get';
+  const url = 'http://pwagram-950b3.firebaseio.com/posts.json';
 
   if (event.request.url.indexOf(url) > -1) {
     console.log('1st', event.request.url);
@@ -110,7 +110,7 @@ self.addEventListener('fetch', (event) => {
           }
           return fetch(event.request)
             .then((res) => {
-              trimCache(CACHE_DYNAMIC_NAME, 3); // should be await / async ? not as we deleting from the beginning
+              // trimCache(CACHE_DYNAMIC_NAME, 3); // should be await / async ? not as we deleting from the beginning
               caches.open(CACHE_DYNAMIC_NAME).then(cache => cache.put(event.request.url, res));
               return res.clone();
             })
